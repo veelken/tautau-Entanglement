@@ -107,6 +107,11 @@ EntanglementNtupleProducer::EntanglementNtupleProducer(const edm::ParameterSet& 
   cfg_svFit.addUntrackedParameter<bool>("cartesian", cartesian_);
   svFit_ = new ClassicSVfitInterface(cfg_svFit);
 
+  edm::ParameterSet cfg_zmf;
+  cfg_zmf.addUntrackedParameter<int>("verbosity", verbosity_);
+  cfg_zmf.addUntrackedParameter<bool>("cartesian", cartesian_);
+  zmf_ = new ZMF(cfg_zmf);
+
   acceptanceCuts_ = new AcceptanceCuts(cfg.getParameter<edm::ParameterSet>("acceptanceCuts"));
 
   srcWeights_ = cfg.getParameter<vInputTag>("srcEvtWeights");
@@ -129,6 +134,8 @@ EntanglementNtupleProducer::~EntanglementNtupleProducer()
   delete kinematicFit_;
 
   delete svFit_;
+
+  delete zmf_;
 
   delete acceptanceCuts_;
 
@@ -325,6 +332,12 @@ void EntanglementNtupleProducer::analyze(const edm::Event& evt, const edm::Event
     }
   }
 
+  KinematicEvent kineEvt_zmf = (*zmf_)(kineEvt_gen_smeared);
+  if ( verbosity_ >= 1 )
+  {
+    printKinematicEvent("kineEvt_zmf", kineEvt_zmf, verbosity_, cartesian_);
+  }
+
   const reco::GenParticle* tauPlus  = nullptr;
   const reco::GenParticle* tauMinus = nullptr;
   double tauPlus_enLoss = 0.;
@@ -414,7 +427,7 @@ void EntanglementNtupleProducer::analyze(const edm::Event& evt, const edm::Event
       &kineEvt_gen,
       tauPlus_nChargedKaons, tauPlus_nNeutralKaons, tauPlus_nPhotons, tauPlus_sumPhotonEn,
       tauMinus_nChargedKaons, tauMinus_nNeutralKaons, tauMinus_nPhotons, tauMinus_sumPhotonEn,
-      &kineEvt_gen_smeared, &kineEvt_startPos_bestfit, &kineEvt_kinFit_bestfit, &kineEvt_svFit,
+      &kineEvt_gen_smeared, &kineEvt_startPos_bestfit, &kineEvt_kinFit_bestfit, &kineEvt_svFit, &kineEvt_zmf,
       passesAcceptanceCuts,
       evtWeight);
     ntupleFiller_had_had_->fillBranches(
@@ -422,7 +435,7 @@ void EntanglementNtupleProducer::analyze(const edm::Event& evt, const edm::Event
       &kineEvt_gen,
       tauPlus_nChargedKaons, tauPlus_nNeutralKaons, tauPlus_nPhotons, tauPlus_sumPhotonEn,
       tauMinus_nChargedKaons, tauMinus_nNeutralKaons, tauMinus_nPhotons, tauMinus_sumPhotonEn,
-      &kineEvt_gen_smeared, &kineEvt_startPos_bestfit, &kineEvt_kinFit_bestfit, &kineEvt_svFit,
+      &kineEvt_gen_smeared, &kineEvt_startPos_bestfit, &kineEvt_kinFit_bestfit, &kineEvt_svFit, &kineEvt_zmf,
       passesAcceptanceCuts,
       evtWeight);
   }

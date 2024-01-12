@@ -20,6 +20,7 @@
 #include "TauAnalysis/Entanglement/interface/KinematicFit.h"             // KinematicFit
 #include "TauAnalysis/Entanglement/interface/StartPosFinder.h"           // StartPosFinder
 #include "TauAnalysis/Entanglement/interface/StartPosTIPCompatibility.h" // StartPosTIPCompatibility
+#include "TauAnalysis/Entanglement/interface/ZMF.h"                      // ZMF
 
 #include <TTree.h>                                                       // TTree
 
@@ -53,6 +54,8 @@ class EntanglementNtupleProducer : public edm::one::EDAnalyzer<>
   KinematicFit* kinematicFit_;
 
   ClassicSVfitInterface* svFit_;
+
+  ZMF* zmf_;
 
   AcceptanceCuts* acceptanceCuts_;
 

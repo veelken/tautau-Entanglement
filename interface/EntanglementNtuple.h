@@ -67,6 +67,7 @@ class EntanglementNtuple
                const KinematicEvent* kineEvt_startPos,
                const KinematicEvent* kineEvt_kinFit,
                const KinematicEvent* kineEvt_svFit,
+               const KinematicEvent* kineEvt_zmf,
                bool passesAcceptanceCuts,
                double evtWeight);
 
@@ -449,6 +450,8 @@ class EntanglementNtuple
 
   branchType_KinematicEvent branches_KinematicEvent_svFit_;
   Int_t   svFit_status_;             // status returned by ClassicSVfit algorithm: +1 = valid solution, -1 = no valid solution
+
+  branchType_KinematicEvent branches_KinematicEvent_zmf_;
 
   Bool_t  passesAcceptanceCuts_;     // flag indicating whether or not all charged hadrons and all photons 
                                      // produced in the decays of tau+ and tau- pass pT/energy and eta/theta cuts
