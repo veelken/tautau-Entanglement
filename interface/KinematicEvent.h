@@ -208,6 +208,7 @@ class KinematicEvent
   friend class StartPosAlgo1;
   friend class StartPosAlgo2;
   friend class Smearing;
+  friend class ZMF;
 
  private:
   std::string label_;
