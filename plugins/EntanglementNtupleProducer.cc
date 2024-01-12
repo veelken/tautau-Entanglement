@@ -108,6 +108,8 @@ EntanglementNtupleProducer::EntanglementNtupleProducer(const edm::ParameterSet& 
   svFit_ = new ClassicSVfitInterface(cfg_svFit);
 
   edm::ParameterSet cfg_zmf;
+  cfg_zmf.addParameter<std::string>("hAxis", hAxis);
+  cfg_zmf.addParameter<std::string>("collider", collider);
   cfg_zmf.addUntrackedParameter<int>("verbosity", verbosity_);
   cfg_zmf.addUntrackedParameter<bool>("cartesian", cartesian_);
   zmf_ = new ZMF(cfg_zmf);
