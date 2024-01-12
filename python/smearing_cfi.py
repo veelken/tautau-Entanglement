@@ -1,10 +1,16 @@
 import FWCore.ParameterSet.Config as cms
 
 smearing = cms.PSet(
+    # settings for SuperKEKB, CLIC/FCC-ee
+    #applySmearing_recoil_px   = cms.bool(True),
+    #applySmearing_recoil_py   = cms.bool(True),
+    #applySmearing_recoil_pz   = cms.bool(True),
+    #applySmearing_recoil_mass = cms.bool(True),
+    # settings for LHC 
     applySmearing_recoil_px   = cms.bool(True),
     applySmearing_recoil_py   = cms.bool(True),
-    applySmearing_recoil_pz   = cms.bool(True),
-    applySmearing_recoil_mass = cms.bool(True),
+    applySmearing_recoil_pz   = cms.bool(False),
+    applySmearing_recoil_mass = cms.bool(False),
 
     applySmearing_pv_xy       = cms.bool(True),
     applySmearing_pv_z        = cms.bool(True),

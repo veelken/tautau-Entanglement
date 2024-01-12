@@ -1,10 +1,18 @@
 import FWCore.ParameterSet.Config as cms
 
 resolutions_LHC = cms.PSet(
-    recoilResolution_px     = cms.double(1.),     # [GeV]
-    recoilResolution_py     = cms.double(1.),     # [GeV]
-    recoilResolution_pz     = cms.double(5.),     # [GeV]
-    recoilResolution_mass   = cms.double(5.),     # [GeV]
+    # settings for CLIC/FCC-ee
+    #recoilResolution_px     = cms.double(1.),     # [GeV]
+    #recoilResolution_py     = cms.double(1.),     # [GeV]
+    #recoilResolution_pz     = cms.double(5.),     # [GeV]
+    #recoilResolution_mass   = cms.double(5.),     # [GeV]
+    # settings for LHC
+    # N.B.: MET resolution taken from SVfit paper 
+    #         Nucl.Instrum.Meth.A 862 (2017) 54 
+    recoilResolution_px     = cms.double(10.),    # [GeV]
+    recoilResolution_py     = cms.double(10.),    # [GeV]
+    recoilResolution_pz     = cms.double(1.e+3),  # [GeV]
+    recoilResolution_mass   = cms.double(1.e+3),  # [GeV]
 
     pvResolution_xy         = cms.double(0.0015), # [cm]
     pvResolution_z          = cms.double(0.0030), # [cm]
@@ -24,10 +32,10 @@ resolutions_LHC = cms.PSet(
 )
 
 resolutions_SuperKEKB = cms.PSet(
-    recoilResolution_px     = cms.double(0.001),  # [GeV]
-    recoilResolution_py     = cms.double(0.001),  # [GeV]
-    recoilResolution_pz     = cms.double(0.010),  # [GeV]
-    recoilResolution_mass   = cms.double(0.010),  # [GeV]
+    recoilResolution_px     = cms.double(0.010),  # [GeV]
+    recoilResolution_py     = cms.double(0.010),  # [GeV]
+    recoilResolution_pz     = cms.double(0.100),  # [GeV]
+    recoilResolution_mass   = cms.double(0.100),  # [GeV]
 
     pvResolution_xy         = cms.double(0.0010), # [cm]
     pvResolution_z          = cms.double(0.0020), # [cm]
