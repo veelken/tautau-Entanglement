@@ -2,6 +2,7 @@
 
 #include "FWCore/Utilities/interface/Exception.h"                                // cms::Exception
 
+#include "DataFormats/Candidate/interface/Candidate.h"                           // reco::Candidate::LorentzVector
 #include "DataFormats/Math/interface/deltaPhi.h"                                 // deltaPhi()
 #include "DataFormats/Math/interface/Matrix.h"                                   // math::Matrix
 #include "DataFormats/Math/interface/Vector.h"                                   // math::Vector

@@ -2,7 +2,6 @@
 #define TauAnalysis_Entanglement_KinematicFit_h
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"            // edm::ParameterSet
-#include "DataFormats/Candidate/interface/Candidate.h"             // reco::Candidate::LorentzVector
 
 #include "TauAnalysis/Entanglement/interface/KinematicEvent.h"     // KinematicEvent
 #include "TauAnalysis/Entanglement/interface/PolarimetricVector.h" // PolarimetricVector
