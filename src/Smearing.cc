@@ -4,7 +4,7 @@
 
 #include "TauAnalysis/Entanglement/interface/cmsException.h"              // cmsException
 #include "TauAnalysis/Entanglement/interface/comp_visP4.h"                // comp_visP4()
-#include "TauAnalysis/Entanglement/interface/constants.h"                 // kLHC, kSuperKEKB, mChargedPion
+#include "TauAnalysis/Entanglement/interface/constants.h"                 // kLHC, kSuperKEKB, mChargedPion, mTau
 #include "TauAnalysis/Entanglement/interface/fixMass.h"                   // fixTauMass()
 #include "TauAnalysis/Entanglement/interface/get_leadTrack.h"             // get_leadTrack()
 #include "TauAnalysis/Entanglement/interface/get_localCoordinateSystem.h" // get_localCoordinateSystem()
@@ -235,7 +235,9 @@ Smearing::smear_recoil_p4(const reco::Candidate::LorentzVector& recoilP4)
   if ( applySmearing_recoil_mass_ )
   {
     smeared_recoilM  += rnd_.Gaus(0., resolutions_->recoilResolution_mass());
-    if ( smeared_recoilM < 0. ) smeared_recoilM = 0.;
+    //double min_recoilM = 0.;
+    double min_recoilM = 2.*mTau;
+    if ( smeared_recoilM < min_recoilM ) smeared_recoilM = min_recoilM;
   }
   double smeared_recoilE  = std::sqrt(square(smeared_recoilPx) + square(smeared_recoilPy) + square(smeared_recoilPz) + square(smeared_recoilM));
   return reco::Candidate::LorentzVector(smeared_recoilPx, smeared_recoilPy, smeared_recoilPz, smeared_recoilE);
