@@ -1,5 +1,6 @@
 #include "TauAnalysis/Entanglement/interface/AcceptanceCuts.h"
 
+#include "TauAnalysis/Entanglement/interface/comp_visP4.h"            // comp_visP4()
 #include "TauAnalysis/Entanglement/interface/findDecayProducts.h"     // findDecayProducts()
 #include "TauAnalysis/Entanglement/interface/get_particles_of_type.h" // get_chargedHadrons(), get_photons()
 
@@ -36,10 +37,16 @@ ParticleSelector::~ParticleSelector()
 bool
 ParticleSelector::operator()(const reco::GenParticle& particle) const
 {
-  if ( particle.eta()    > minEta_    && particle.eta()    < maxEta_    && 
-       particle.theta()  > minTheta_  && particle.theta()  < maxTheta_  && 
-       particle.pt()     > minPt_     && particle.pt()     < maxPt_     && 
-       particle.energy() > minEnergy_ && particle.energy() < maxEnergy_ )
+  return this->operator()(particle.p4());
+}
+
+bool
+ParticleSelector::operator()(const reco::Candidate::LorentzVector& p4) const
+{
+  if ( p4.eta()    > minEta_    && p4.eta()    < maxEta_    && 
+       p4.theta()  > minTheta_  && p4.theta()  < maxTheta_  && 
+       p4.pt()     > minPt_     && p4.pt()     < maxPt_     && 
+       p4.energy() > minEnergy_ && p4.energy() < maxEnergy_ )
   {
     return true;
   }
@@ -52,6 +59,7 @@ ParticleSelector::operator()(const reco::GenParticle& particle) const
 AcceptanceCuts::AcceptanceCuts(const edm::ParameterSet& cfg)
   : chargedHadronSelector_(cfg.getParameter<edm::ParameterSet>("chargedHadrons"))
   , photonSelector_(cfg.getParameter<edm::ParameterSet>("photons"))
+  , tauJetSelector_(cfg.getParameter<edm::ParameterSet>("tauJets"))
 {}
 
 AcceptanceCuts::~AcceptanceCuts()
@@ -80,16 +88,20 @@ AcceptanceCuts::operator()(const reco::GenParticle& tauPlus, const reco::GenPart
 {
   std::vector<const reco::GenParticle*> tauPlus_daughters;
   findDecayProducts(&tauPlus, tauPlus_daughters, false);
+  reco::Candidate::LorentzVector visTauPlusP4 = comp_visP4(tauPlus_daughters);
   std::vector<const reco::GenParticle*> tauPlus_ch = get_chargedHadrons(tauPlus_daughters);
   std::vector<const reco::GenParticle*> tauPlus_y = get_photons(tauPlus_daughters);
 
   std::vector<const reco::GenParticle*> tauMinus_daughters;
   findDecayProducts(&tauMinus, tauMinus_daughters, false);
+  reco::Candidate::LorentzVector visTauMinusP4 = comp_visP4(tauMinus_daughters);
   std::vector<const reco::GenParticle*> tauMinus_ch = get_chargedHadrons(tauMinus_daughters);
   std::vector<const reco::GenParticle*> tauMinus_y = get_photons(tauMinus_daughters);
 
-  if ( passesAcceptanceCuts(tauPlus_ch,  chargedHadronSelector_) &&
+  if ( tauJetSelector_(visTauPlusP4)                             &&
+       passesAcceptanceCuts(tauPlus_ch,  chargedHadronSelector_) &&
        passesAcceptanceCuts(tauPlus_y,   photonSelector_)        &&
+       tauJetSelector_(visTauMinusP4)                            &&
        passesAcceptanceCuts(tauMinus_ch, chargedHadronSelector_) &&
        passesAcceptanceCuts(tauMinus_y,  photonSelector_)        )
   {

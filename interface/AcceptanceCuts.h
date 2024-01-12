@@ -19,6 +19,8 @@ class ParticleSelector
 
   bool
   operator()(const reco::GenParticle& particle) const;
+  bool
+  operator()(const reco::Candidate::LorentzVector& p4) const;
 
  private:
   double minEta_;
@@ -43,6 +45,7 @@ class AcceptanceCuts
  private:
   ParticleSelector chargedHadronSelector_;
   ParticleSelector photonSelector_;
+  ParticleSelector tauJetSelector_;
 };
 
 #endif // TauAnalysis_Entanglement_AcceptanceCuts_h
