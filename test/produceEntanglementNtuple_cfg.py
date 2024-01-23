@@ -15,7 +15,8 @@ process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('Configuration.StandardSequences.Reconstruction_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
-process.MessageLogger.cerr.FwkReport.reportEvery = 1000
+#process.MessageLogger.cerr.FwkReport.reportEvery = 1000
+process.MessageLogger.cerr.FwkReport.reportEvery = 1
 
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(-1)
@@ -32,12 +33,14 @@ tauPairMassCut = "mass > 120. & mass < 130."
 from TauAnalysis.Entanglement.resolutions_cfi import resolutions_LHC as resolutions
 from TauAnalysis.Entanglement.acceptanceCuts_cfi import acceptanceCuts_LHC as acceptanceCuts
 startPosFinder_applyHiggsMassConstraint = True
+svFit_applyHiggsMassConstraint = True
 {% elif collider == 'SuperKEKB' %}
 srcGenParticles = 'genParticles'
 tauPairMassCut = "mass > 0."
 from TauAnalysis.Entanglement.resolutions_cfi import resolutions_SuperKEKB as resolutions
 from TauAnalysis.Entanglement.acceptanceCuts_cfi import acceptanceCuts_SuperKEKB as acceptanceCuts
 startPosFinder_applyHiggsMassConstraint = False
+svFit_applyHiggsMassConstraint = False
 {% else %}
 raise ValueError("Invalid Configuration parameter 'collider' = '{{ collider }}' !!")
 {% endif %}
@@ -93,6 +96,7 @@ process.ntupleProducer.smearing.rndSeed = cms.uint64({{ rndSeed }})
 process.ntupleProducer.startPosFinder.applyHiggsMassConstraint = cms.bool(startPosFinder_applyHiggsMassConstraint)
 process.ntupleProducer.startPosFinder.skip = cms.bool(False)
 process.ntupleProducer.kinematicFit.skip = cms.bool(False)
+process.ntupleProducer.svFit.applyHiggsMassConstraint = cms.bool(svFit_applyHiggsMassConstraint)
 process.ntupleProducer.svFit.skip = cms.bool(False)
 process.ntupleProducer.acceptanceCuts = acceptanceCuts
 process.ntupleProducer.verbosity = cms.untracked.int32({{ verbosity }})

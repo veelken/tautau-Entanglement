@@ -24,6 +24,8 @@ class ClassicSVfitInterface
   Resolutions* resolutions_;
   int collider_;
 
+  bool applyHiggsMassConstraint_;
+
   ClassicSVfit* svFitAlgo_;
   classic_svFit::HistogramAdapterDiTauSpin* histogramAdapter_;
 

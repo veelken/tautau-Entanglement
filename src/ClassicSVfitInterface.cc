@@ -14,7 +14,7 @@
 #include "TauAnalysis/ClassicSVfit/interface/svFitHistogramAdapter.h"     // HistogramAdapterDiTau
 
 #include "TauAnalysis/Entanglement/interface/cmsException.h"              // cmsException
-#include "TauAnalysis/Entanglement/interface/constants.h"                 // kLHC, kSuperKEKB
+#include "TauAnalysis/Entanglement/interface/constants.h"                 // kLHC, kSuperKEKB, mHiggs
 #include "TauAnalysis/Entanglement/interface/convert_to_TMatrixD.h"       // convert_to_TMatrixD()
 #include "TauAnalysis/Entanglement/interface/get_decayMode.h"             // is3Prong()
 
@@ -27,6 +27,7 @@ ClassicSVfitInterface::ClassicSVfitInterface(const edm::ParameterSet& cfg)
   : resolutions_(nullptr)
   , svFitAlgo_(nullptr)
   , histogramAdapter_(nullptr)
+  , applyHiggsMassConstraint_(cfg.getParameter<bool>("applyHiggsMassConstraint"))
   , skip_(cfg.getParameter<bool>("skip"))
   , verbosity_(cfg.getUntrackedParameter<int>("verbosity"))
   , cartesian_(cfg.getUntrackedParameter<bool>("cartesian"))
@@ -42,9 +43,25 @@ ClassicSVfitInterface::ClassicSVfitInterface(const edm::ParameterSet& cfg)
 
   svFitAlgo_ = new ClassicSVfit();
   svFitAlgo_->enableTauFlightLength();
-  //svFitAlgo_->disableTauFlightLength();
-  //svFitAlgo_->enableLogM(6.);
-  svFitAlgo_->disableLogM();
+  //svFitAlgo_->disableTauFlightLength();  
+  if ( applyHiggsMassConstraint_ )
+  {
+    std::cout << "Enabling SVfit mass-constraint (mH = " << mHiggs << " GeV).\n";
+    svFitAlgo_->enableDiTauMassConstraint(mHiggs);
+  }
+  else
+  {
+    std::cout << "Disabling SVfit mass-constraint.\n";
+    svFitAlgo_->disableDiTauMassConstraint();
+    if ( collider_ == kLHC )
+    {
+      svFitAlgo_->enableLogM(6.);
+    }
+    else
+    {
+      svFitAlgo_->disableLogM();
+    }
+  }
   //svFitAlgo_->setMaxObjFunctionCalls(100000); // CV: default is 100000 evaluations of integrand per event
 //svFitAlgo_->setMaxObjFunctionCalls(1000);
   histogramAdapter_ = new HistogramAdapterDiTauSpin();

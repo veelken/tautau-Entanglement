@@ -23,6 +23,7 @@ ntupleProducer = cms.EDAnalyzer("EntanglementNtupleProducer",
         skip = cms.bool(False)
     ),
     svFit = cms.PSet(
+        applyHiggsMassConstraint = cms.bool(True),
         skip = cms.bool(False)
     ),
     acceptanceCuts = cms.PSet(),
