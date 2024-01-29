@@ -4,6 +4,7 @@
 # ./test/produceNtuples.py -v 2023Nov16_a1PolVectorSignFix_wSmearing -s dy_lo_pythia8_ext -m -1 -j cluster
 # For debugging:
 # ./test/produceNtuples.py -v 2023Nov16_a1PolVectorSignFix_wSmearing -s dy_lo_pythia8_ext dy_lo_taudecay dy_lo_kkmc_orig -m 100 -j cluster
+# ./test/produceNtuples.py -v 2024Jan26_wHiggsMassConstraint -c LHC -s ggH_htt_pythia8 -m 100 -j cluster
 
 import datetime
 import argparse

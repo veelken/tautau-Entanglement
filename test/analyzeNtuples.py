@@ -12,11 +12,13 @@ import re
 # ./test/analyzeNtuples.py -v 2023Nov16_a1PolVectorSignFix_wSmearing -s dy_lo_pythia8_ext -S by_differentialXsec1d by_differentialXsec2d by_asymmetry -M inclusive scan -j cluster
 # ./test/analyzeNtuples.py -v 2023Nov16_a1PolVectorSignFix_wSmearing_wAcceptanceCuts -V 2023Nov16_a1PolVectorSignFix_wSmearing -s dy_lo_pythia8_ext -S by_differentialXsec1d by_differentialXsec2d by_asymmetry -M inclusive scan --apply-acceptance-cuts -j cluster
 # ./test/analyzeNtuples.py -v 2023Nov16_a1PolVectorSignFix_wSmearing_wCorrectStartPosSignCut -V 2023Nov16_a1PolVectorSignFix_wSmearing -s dy_lo_pythia8_ext -S by_summation -m kinFit -M inclusive -j cluster
+# For debugging:
+# ./test/analyzeNtuples.py -v 2024Jan26_wHiggsMassConstraint -c LHC -s ggH_htt_pythia8 -d pi_pi pi_rho pi_a1 rho_rho rho_a1 a1_a1 had_had -M inclusive -A analyzeEntanglementNtuple makeResolutionPlots makeControlPlots -j cluster
 
 from TauAnalysis.Entanglement.tools.jobTools import getInputFileNames, build_Makefile, query_yes_no, \
   build_cfg, mkdir, read_contents, save_cmd, positive_int_type, build_sbatchSubmission
 
-mode_choices = [ "gen", "gen_smeared", "startPos", "kinFit" ]
+mode_choices = [ "gen", "gen_smeared", "startPos", "kinFit", "svFit", "zmf" ]
 hAxes_choices = [ "beam", "higgs" ]
 collider_choices = [ "LHC", "SuperKEKB" ]
 decayMode_choices = [ "pi_pi", "pi_rho", "pi_a1", "rho_rho", "rho_a1", "a1_a1" ]
