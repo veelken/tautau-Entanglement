@@ -31,6 +31,7 @@ INIT_METHODS = {
   'gen'      : 'MC-truth level',
 #  'startPos' : 'Analytic',
   'kinFit'   : 'KF after smearing',
+  'svFit'    : 'SVfit after smearing',
 }
 
 EXTENSIONS = [ 'pdf', 'png' ]
