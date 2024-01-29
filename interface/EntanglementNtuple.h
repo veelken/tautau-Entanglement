@@ -1,21 +1,24 @@
 #ifndef TauAnalysis_Entanglement_EntanglementNtuple_h
 #define TauAnalysis_Entanglement_EntanglementNtuple_h
 
-#include "FWCore/Framework/interface/Event.h"                     // edm::Event
+#include "FWCore/Framework/interface/Event.h"                              // edm::Event
 
-#include "DataFormats/Candidate/interface/Candidate.h"            // reco::Candidate::LorentzVector
+#include "DataFormats/Candidate/interface/Candidate.h"                     // reco::Candidate::LorentzVector
 
-#include "TauAnalysis/Entanglement/interface/getP4_rf.h"          // getP4_rf()
-#include "TauAnalysis/Entanglement/interface/KinematicEvent.h"    // KinematicEvent
-#include "TauAnalysis/Entanglement/interface/Matrix_and_Vector.h" // numMeasurements, numParameters
+#include "TauAnalysis/Entanglement/interface/comp_normalDecayPlane.h"      // comp_normalDecayPlane() 
+#include "TauAnalysis/Entanglement/interface/getP4_rf.h"                   // getP4_rf()
+#include "TauAnalysis/Entanglement/interface/KinematicEvent.h"             // KinematicEvent
+#include "TauAnalysis/Entanglement/interface/Matrix_and_Vector.h"          // numMeasurements, numParameters
+#include "TauAnalysis/Entanglement/interface/PolarimetricVectorAlgoBase.h" // pol::kTauPlus, pol::kTauMinus
 
-#include <Math/Boost.h>                                           // ROOT::Math::Boost
-#include <TString.h>                                              // Form()
-#include <TTree.h>                                                // TTree
-#include <Rtypes.h>                                               // Float_t, Int_t
+#include <Math/Boost.h>                                                    // ROOT::Math::Boost
+#include <TString.h>                                                       // Form()
+#include <TTree.h>                                                         // TTree
+#include <Rtypes.h>                                                        // Float_t, Int_t
 
-#include <vector>                                                 // std::vector<>
-#include <string>                                                 // std::string
+#include <cmath>                                                           // std::acos()
+#include <vector>                                                          // std::vector<>
+#include <string>                                                          // std::string
 
 namespace
 {
@@ -110,6 +113,9 @@ class EntanglementNtuple
       , nuPlus_phi_(0.)
       , nuPlus_mass_(0.)
       , zPlus_(0.)
+      , nPlus_r_(0.)
+      , nPlus_n_(0.)
+      , nPlus_k_(0.)
       , hMinus_r_(0.)
       , hMinus_n_(0.)
       , hMinus_k_(0.)
@@ -131,9 +137,13 @@ class EntanglementNtuple
       , nuMinus_phi_(0.)
       , nuMinus_mass_(0.)
       , zMinus_(0.)
+      , nMinus_r_(0.)
+      , nMinus_n_(0.)
+      , nMinus_k_(0.)
       , mTauTau_(0.)
       , mVis_(0.)
       , cosThetaStar_(0.)
+      , phiDecayPlane_(0.)
     {}
     ~branchType_KinematicEvent()
     {}
@@ -171,6 +181,9 @@ class EntanglementNtuple
       createBranchF(ntuple, label_, "nuPlus_phi", &nuPlus_phi_);
       createBranchF(ntuple, label_, "nuPlus_mass", &nuPlus_mass_);
       createBranchF(ntuple, label_, "zPlus", &zPlus_);
+      createBranchF(ntuple, label_, "nPlus_r", &nPlus_r_);
+      createBranchF(ntuple, label_, "nPlus_n", &nPlus_n_);
+      createBranchF(ntuple, label_, "nPlus_k", &nPlus_k_);
 
       createBranchF(ntuple, label_, "hMinus_r", &hMinus_r_);
       createBranchF(ntuple, label_, "hMinus_n", &hMinus_n_);
@@ -193,10 +206,14 @@ class EntanglementNtuple
       createBranchF(ntuple, label_, "nuMinus_phi", &nuMinus_phi_);
       createBranchF(ntuple, label_, "nuMinus_mass", &nuMinus_mass_);
       createBranchF(ntuple, label_, "zMinus", &zMinus_);
+      createBranchF(ntuple, label_, "nMinus_r", &nMinus_r_);
+      createBranchF(ntuple, label_, "nMinus_n", &nMinus_n_);
+      createBranchF(ntuple, label_, "nMinus_k", &nMinus_k_);
 
       createBranchF(ntuple, label_, "mTauTau", &mTauTau_);
       createBranchF(ntuple, label_, "mVis", &mVis_);
       createBranchF(ntuple, label_, "cosThetaStar", &cosThetaStar_);
+      createBranchF(ntuple, label_, "phiDecayPlane", &phiDecayPlane_);
     }
 
     void
@@ -282,6 +299,10 @@ class EntanglementNtuple
       {
         zPlus_            = comp_z(tauPlusP4, visPlusP4, boost_ttrf);
       }
+      reco::Candidate::Vector nPlus = comp_normalDecayPlane(kineEvt, pol::kTauPlus);
+      nPlus_r_            = nPlus.x();
+      nPlus_n_            = nPlus.y();
+      nPlus_k_            = nPlus.z();
 
       if ( kineEvt.hMinus_isValid() )
       {
@@ -351,17 +372,23 @@ class EntanglementNtuple
       {
         zMinus_           = comp_z(tauMinusP4, visMinusP4, boost_ttrf);
       }
+      reco::Candidate::Vector nMinus = comp_normalDecayPlane(kineEvt, pol::kTauMinus);
+      nMinus_r_           = nMinus.x();
+      nMinus_n_           = nMinus.y();
+      nMinus_k_           = nMinus.z();
 
       if ( kineEvt.tauPlusP4_isValid() && kineEvt.tauMinusP4_isValid() )
       {
         mTauTau_          = (tauPlusP4 + tauMinusP4).mass();
         reco::Candidate::LorentzVector tauMinusP4_ttrf = getP4_rf(tauMinusP4, boost_ttrf);
         cosThetaStar_     = cos(tauMinusP4_ttrf.theta());
+        phiDecayPlane_    = std::acos(nPlus.Dot(nMinus));
       }
       else
       {
         mTauTau_          = 0.;
         cosThetaStar_     = 0.;
+        phiDecayPlane_    = 0.;
       }
       mVis_               = (visPlusP4 + visMinusP4).mass();
     }
@@ -398,6 +425,9 @@ class EntanglementNtuple
     Float_t nuPlus_phi_;             // azimuthal angle (in laboratory frame) of neutrino produced in tau+ decay
     Float_t nuPlus_mass_;            // mass of neutrino produced in tau+ decay
     Float_t zPlus_;                  // fraction of tau+ energy (in tau-pair restframe) carried by visible decay products of tau+
+    Float_t nPlus_r_;                // r component of normal vector to tau+ decay plane
+    Float_t nPlus_n_;                // n component of normal vector to tau+ decay plane
+    Float_t nPlus_k_;                // k component of normal vector to tau+ decay plane
 
     Float_t hMinus_r_;               // r component (in helicity frame) of polarimetric vector of tau-
     Float_t hMinus_n_;               // n component (in helicity frame) of polarimetric vector of tau-
@@ -420,10 +450,14 @@ class EntanglementNtuple
     Float_t nuMinus_phi_;            // azimuthal angle (in laboratory frame) of neutrino produced in tau- decay
     Float_t nuMinus_mass_;           // mass of neutrino produced in tau- decay
     Float_t zMinus_;                 // fraction of tau- energy (in tau-pair restframe) carried by visible decay products of tau-
+    Float_t nMinus_r_;               // r component of normal vector to tau- decay plane
+    Float_t nMinus_n_;               // n component of normal vector to tau- decay plane
+    Float_t nMinus_k_;               // k component of normal vector to tau- decay plane
 
     Float_t mTauTau_;                // mass of tau pair
     Float_t mVis_;                   // mass of visible decay products of tau pair
     Float_t cosThetaStar_;           // polar angle of tau- in tau-pair restframe
+    Float_t phiDecayPlane_;          // angle between tau+ and tau- decay planes
   };
 
   branchType_KinematicEvent branches_KinematicEvent_gen_;
