@@ -1,5 +1,6 @@
 
 #include "DataFormats/Candidate/interface/Candidate.h"                    // reco::Candidate::LorentzVector
+#include "DataFormats/Math/interface/deltaPhi.h"                          // deltaPhi()
 #include "DataFormats/FWLite/interface/InputSource.h"                     // fwlite::InputSource
 #include "DataFormats/FWLite/interface/OutputFiles.h"                     // fwlite::OutputFiles
 #include "FWCore/ParameterSet/interface/ParameterSet.h"                   // edm::ParameterSet
@@ -23,6 +24,7 @@
 #include <TBenchmark.h>                                                   // TBenchmark
 #include <TError.h>                                                       // gErrorAbortLevel, kError
 #include <TH1.h>                                                          // TH1D
+#include <TMath.h>                                                        // TMath::Pi()
 #include <TString.h>                                                      // Form()
 #include <TTree.h>                                                        // TTree
 
@@ -195,6 +197,8 @@ int main(int argc, char* argv[])
   TH1* histogram_res_higgs_py               = bookHistogram1d(fs, "res_higgs_py",               100, -50.,   +50.);
   TH1* histogram_res_higgs_pz               = bookHistogram1d(fs, "res_higgs_pz",               100, -50.,   +50.);
 
+  TH1* histogram_res_phiDecayPlane          = bookHistogram1d(fs, "res_phiDecayPlane",           72, -TMath::Pi(), +TMath::Pi());
+
   int analyzedEntries = 0;
   double analyzedEntries_weighted = 0.;
   int selectedEntries = 0;
@@ -295,6 +299,9 @@ int main(int argc, char* argv[])
     bai.setBranchAddress(gen_hMinus_n, "gen_hMinus_n");
     bai.setBranchAddress(gen_hMinus_k, "gen_hMinus_k");
 
+    Float_t gen_phiDecayPlane;
+    bai.setBranchAddress(gen_phiDecayPlane, "gen_phiDecayPlane");
+
     Float_t rec_pv_x, rec_pv_y, rec_pv_z;
     bai.setBranchAddress(rec_pv_x, Form("%s_pv_x", mode.c_str()));
     bai.setBranchAddress(rec_pv_y, Form("%s_pv_y", mode.c_str()));
@@ -358,6 +365,10 @@ int main(int argc, char* argv[])
     bai.setBranchAddress(rec_hMinus_r, Form("%s_hMinus_r", mode.c_str()));
     bai.setBranchAddress(rec_hMinus_n, Form("%s_hMinus_n", mode.c_str()));
     bai.setBranchAddress(rec_hMinus_k, Form("%s_hMinus_k", mode.c_str()));
+
+    Float_t rec_phiDecayPlane;
+    bai.setBranchAddress(rec_phiDecayPlane, Form("%s_phiDecayPlane", mode.c_str()));
+
     Float_t startPos_hMinus_r, startPos_hMinus_n, startPos_hMinus_k;
     if ( mode == "kinFit" )
     {
@@ -521,6 +532,8 @@ int main(int argc, char* argv[])
       histogram_res_higgs_py->Fill(rec_higgs_p4.py() - gen_higgs_p4.py(), evtWeight);
       histogram_res_higgs_pz->Fill(rec_higgs_p4.pz() - gen_higgs_p4.pz(), evtWeight);
 
+      histogram_res_phiDecayPlane->Fill(deltaPhi(rec_phiDecayPlane, gen_phiDecayPlane), evtWeight);
+
       if (( std::fabs(rec_hPlus_dot_hMinus - gen_hPlus_dot_hMinus) > 0.1 ) && isDEBUG )
       {
         std::cout << "run = " << run << ", lumi = " << lumi << ", event = " << event << "\n";
@@ -681,6 +694,9 @@ int main(int argc, char* argv[])
   showHistogram1d(800, 600, histogram_res_higgs_py, "H p_{y}^{rec} - p_{y}^{gen} [GeV]", 1.2, true, 1.e-3, 1.e0, "Events", 1.3, true, "E1P", outputFile.file());
   scaleHistogram(histogram_res_higgs_pz, avEvtWeight);
   showHistogram1d(800, 600, histogram_res_higgs_pz, "H p_{z}^{rec} - p_{z}^{gen} [GeV]", 1.2, true, 1.e-3, 1.e0, "Events", 1.3, true, "E1P", outputFile.file());
+
+  scaleHistogram(histogram_res_phiDecayPlane, avEvtWeight);
+  showHistogram1d(800, 600, histogram_res_phiDecayPlane, "#phi^{rec} - #phi^{gen}", 1.2, true, 1.e-3, 1.e0, "Events", 1.3, true, "E1P", outputFile.file());
 
   clock.Show("makeResolutionPlots");
 
