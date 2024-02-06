@@ -14,14 +14,17 @@
 #include "TauAnalysis/ClassicSVfit/interface/svFitHistogramAdapter.h"     // HistogramAdapterDiTau
 
 #include "TauAnalysis/Entanglement/interface/cmsException.h"              // cmsException
-#include "TauAnalysis/Entanglement/interface/constants.h"                 // kLHC, kSuperKEKB, mHiggs
+#include "TauAnalysis/Entanglement/interface/constants.h"                 // kLHC, kSuperKEKB, mHiggs, beamEnergy_SuperKEKB_e*
 #include "TauAnalysis/Entanglement/interface/convert_to_TMatrixD.h"       // convert_to_TMatrixD()
 #include "TauAnalysis/Entanglement/interface/get_decayMode.h"             // is3Prong()
+#include "TauAnalysis/Entanglement/interface/square.h"                    // square()
 
+#include <algorithm>                                                      // std::max()
+#include <cmath>                                                          // std::fabs(), std::sqrt()
 #include <iostream>                                                       // std::cout
 #include <string>                                                         // std::string
 
-using namespace classic_svFit;
+const double sqrtS_SuperKEKB = std::sqrt(square(beamEnergy_SuperKEKB_ePlus + beamEnergy_SuperKEKB_eMinus) - square(beamEnergy_SuperKEKB_ePlus - beamEnergy_SuperKEKB_eMinus));
 
 ClassicSVfitInterface::ClassicSVfitInterface(const edm::ParameterSet& cfg)
   : resolutions_(nullptr)
@@ -46,8 +49,17 @@ ClassicSVfitInterface::ClassicSVfitInterface(const edm::ParameterSet& cfg)
   //svFitAlgo_->disableTauFlightLength();  
   if ( applyHiggsMassConstraint_ )
   {
-    std::cout << "Enabling SVfit mass-constraint (mH = " << mHiggs << " GeV).\n";
-    svFitAlgo_->enableDiTauMassConstraint(mHiggs);
+    if ( collider_ == kLHC )
+    {
+      std::cout << "Enabling SVfit mass-constraint (mH = " << mHiggs << " GeV).\n";
+      svFitAlgo_->enableDiTauMassConstraint(mHiggs);
+    }
+    else if ( collider_ == kSuperKEKB )
+    {
+      std::cout << "Enabling SVfit mass-constraint (sqrtS = " << sqrtS_SuperKEKB << " GeV).\n";
+      svFitAlgo_->enableDiTauMassConstraint(sqrtS_SuperKEKB);
+    }
+    else assert(0);
   }
   else
   {
@@ -64,7 +76,7 @@ ClassicSVfitInterface::ClassicSVfitInterface(const edm::ParameterSet& cfg)
   }
   //svFitAlgo_->setMaxObjFunctionCalls(100000); // CV: default is 100000 evaluations of integrand per event
 //svFitAlgo_->setMaxObjFunctionCalls(1000);
-  histogramAdapter_ = new HistogramAdapterDiTauSpin();
+  histogramAdapter_ = new classic_svFit::HistogramAdapterDiTauSpin();
   svFitAlgo_->setHistogramAdapter(histogramAdapter_);
 //svFitAlgo_->setVerbosity(2);
 }
@@ -79,17 +91,17 @@ ClassicSVfitInterface::~ClassicSVfitInterface()
 
 namespace
 {
-  std::vector<MeasuredHadTauDecayProduct>
+  std::vector<classic_svFit::MeasuredHadTauDecayProduct>
   buildMeasuredHadTauDecayProduct(const std::vector<KinematicParticle>& decayProducts)
   {
-    std::vector<MeasuredHadTauDecayProduct> measuredHadTauDecayProducts;
+    std::vector<classic_svFit::MeasuredHadTauDecayProduct> measuredHadTauDecayProducts;
     for ( const KinematicParticle& decayProduct : decayProducts )
     {
       if ( std::abs(decayProduct.pdgId()) == 11 || std::abs(decayProduct.pdgId()) == 13 ) continue;
       if ( decayProduct.charge() != 0 || decayProduct.pdgId() == 111 )
       {
         const reco::Candidate::LorentzVector& decayProductP4 = decayProduct.p4();
-        MeasuredHadTauDecayProduct measuredHadTauDecayProduct(
+        classic_svFit::MeasuredHadTauDecayProduct measuredHadTauDecayProduct(
           decayProduct.charge(),
           decayProductP4.pt(), decayProductP4.eta(), decayProductP4.phi(), decayProductP4.mass());
         measuredHadTauDecayProducts.push_back(measuredHadTauDecayProduct);
@@ -98,25 +110,25 @@ namespace
     return measuredHadTauDecayProducts;
   }
 
-  MeasuredTauLepton
+  classic_svFit::MeasuredTauLepton
   buildMeasuredTauLepton(int charge, const reco::Candidate::LorentzVector& visTauP4, int decayMode,
                          const reco::Candidate::Point& decayVertex, const math::Matrix3x3& decayVertexCov, 
                          const Resolutions& resolutions,
-                         const std::vector<MeasuredHadTauDecayProduct>& measuredHadTauDecayProducts)
+                         const std::vector<classic_svFit::MeasuredHadTauDecayProduct>& measuredHadTauDecayProducts)
   {
-    MeasuredTauLepton measuredTauLepton;
+    classic_svFit::MeasuredTauLepton measuredTauLepton;
     if ( is3Prong(decayMode) )
     {
-      measuredTauLepton = MeasuredTauLepton(
-        MeasuredTauLepton::kTauToHadDecay, 
+      measuredTauLepton = classic_svFit::MeasuredTauLepton(
+        classic_svFit::MeasuredTauLepton::kTauToHadDecay, 
         charge, visTauP4.pt(), visTauP4.eta(), visTauP4.phi(), visTauP4.mass(),
         decayVertex, convert_to_TMatrixD(decayVertexCov),
         decayMode, &measuredHadTauDecayProducts);
     }
     else
     {
-      measuredTauLepton = MeasuredTauLepton(
-        MeasuredTauLepton::kTauToHadDecay, 
+      measuredTauLepton = classic_svFit::MeasuredTauLepton(
+        classic_svFit::MeasuredTauLepton::kTauToHadDecay, 
         charge, visTauP4.pt(), visTauP4.eta(), visTauP4.phi(), visTauP4.mass(),
         decayVertex, 1.e+3, resolutions.tipResolution_perp(),
         decayMode, &measuredHadTauDecayProducts);
@@ -157,9 +169,9 @@ ClassicSVfitInterface::operator()(const KinematicEvent& kineEvt)
   {
     tauPlusDecayVertex = kineEvt.tipPCATauPlus();
   }
-  std::vector<MeasuredHadTauDecayProduct> measuredTauPlusDecayProducts = buildMeasuredHadTauDecayProduct(
+  std::vector<classic_svFit::MeasuredHadTauDecayProduct> measuredTauPlusDecayProducts = buildMeasuredHadTauDecayProduct(
     kineEvt.daughtersTauPlus());
-  MeasuredTauLepton measuredTauPlus = buildMeasuredTauLepton(
+  classic_svFit::MeasuredTauLepton measuredTauPlus = buildMeasuredTauLepton(
     +1, kineEvt.visTauPlusP4(), kineEvt.tauPlus_decayMode(),
     tauPlusDecayVertex, kineEvt.svTauPlusCov(),
     *resolutions_,
@@ -175,44 +187,44 @@ ClassicSVfitInterface::operator()(const KinematicEvent& kineEvt)
   {
     tauMinusDecayVertex = kineEvt.tipPCATauMinus();
   }
-  std::vector<MeasuredHadTauDecayProduct> measuredTauMinusDecayProducts = buildMeasuredHadTauDecayProduct(
+  std::vector<classic_svFit::MeasuredHadTauDecayProduct> measuredTauMinusDecayProducts = buildMeasuredHadTauDecayProduct(
     kineEvt.daughtersTauMinus());
-  MeasuredTauLepton measuredTauMinus = buildMeasuredTauLepton(
+  classic_svFit::MeasuredTauLepton measuredTauMinus = buildMeasuredTauLepton(
     -1, kineEvt.visTauMinusP4(), kineEvt.tauMinus_decayMode(),
     tauMinusDecayVertex, kineEvt.svTauMinusCov(),
     *resolutions_,
     measuredTauMinusDecayProducts);
 
-  std::vector<MeasuredTauLepton> measuredTauLeptons;
+  std::vector<classic_svFit::MeasuredTauLepton> measuredTauLeptons;
   measuredTauLeptons.push_back(measuredTauPlus);
   measuredTauLeptons.push_back(measuredTauMinus);
 
-  MeasuredMEt measuredMEt;
+  classic_svFit::MeasuredMEt measuredMEt;
   if ( collider_ == kLHC )
   {
     reco::Candidate::LorentzVector MEt = kineEvt.recoilP4() - (kineEvt.visTauPlusP4() + kineEvt.visTauMinusP4());
     TMatrixD covMEt = convert_to_TMatrixD(kineEvt.recoilCov().Sub<math::Matrix2x2>(0,0));
-    measuredMEt = MeasuredMEt(MEt.px(), MEt.py(), covMEt);
+    measuredMEt = classic_svFit::MeasuredMEt(MEt.px(), MEt.py(), covMEt);
   }
   else if ( collider_ == kSuperKEKB )
   {
     reco::Candidate::LorentzVector MEt = kineEvt.recoilP4() - (kineEvt.visTauPlusP4() + kineEvt.visTauMinusP4());
     TMatrixD covMEt = convert_to_TMatrixD(kineEvt.recoilCov());
-    measuredMEt = MeasuredMEt(MEt.px(), MEt.py(), MEt.pz(), MEt.energy(), covMEt);
+    measuredMEt = classic_svFit::MeasuredMEt(MEt.px(), MEt.py(), MEt.pz(), MEt.energy(), covMEt);
   } else assert(0);
 
-  MeasuredEvent measuredEvent(measuredTauLeptons, { measuredMEt }, kineEvt.pv(), convert_to_TMatrixD(kineEvt.pvCov()));
+  classic_svFit::MeasuredEvent measuredEvent(measuredTauLeptons, { measuredMEt }, kineEvt.pv(), convert_to_TMatrixD(kineEvt.pvCov()));
 
   svFitAlgo_->setStartPosition(kineEvt.tauPlusP4(), kineEvt.tauMinusP4());
   svFitAlgo_->integrate(measuredEvent);
   bool isValidSolution = svFitAlgo_->isValidSolution();
-
+//std::cout << "isValidSolution = " << isValidSolution << "\n";
   if ( isValidSolution  )
   {
-    const HistogramAdapterDiTauSpin* fittedDiTau = dynamic_cast<const HistogramAdapterDiTauSpin*>(svFitAlgo_->getHistogramAdapter());
+    const classic_svFit::HistogramAdapterDiTauSpin* fittedDiTau = dynamic_cast<const classic_svFit::HistogramAdapterDiTauSpin*>(svFitAlgo_->getHistogramAdapter());
     assert(fittedDiTau);
-    const HistogramAdapterTau* fittedTau1 = fittedDiTau->tau1();
-    const HistogramAdapterTau* fittedTau2 = fittedDiTau->tau2();
+    const classic_svFit::HistogramAdapterTau* fittedTau1 = fittedDiTau->tau1();
+    const classic_svFit::HistogramAdapterTau* fittedTau2 = fittedDiTau->tau2();
 
     reco::Candidate::LorentzVector tauPlusP4, tauMinusP4;
     if ( fittedTau1->getCharge() == +1 && fittedTau2->getCharge() == -1 )
@@ -239,6 +251,19 @@ ClassicSVfitInterface::operator()(const KinematicEvent& kineEvt)
     kineEvt_svFit.hMinus_ = buildPolarimeterVector(fittedDiTau->getBm_r(), fittedDiTau->getBm_n(), fittedDiTau->getBm_k());
     kineEvt_svFit.hMinus_isValid_ = true;
     kineEvt_svFit.svFit_isValid_ = true;
+
+//double mTauTau1 = fittedDiTau->getMass();
+//std::cout << "mTauTau = " << mTauTau1 << "\n";
+//double mTauTau2 = (tauPlusP4 + tauMinusP4).mass();
+//double mTauTau_nominal;
+//if      ( collider_ == kLHC       ) mTauTau_nominal = mHiggs;
+//else if ( collider_ == kSuperKEKB ) mTauTau_nominal = sqrtS_SuperKEKB;
+//else assert(0);
+//if ( std::max(std::fabs(mTauTau1 - mTauTau_nominal), std::fabs(mTauTau2 - mTauTau_nominal)) > 5.e-2*mTauTau_nominal )
+//{
+//  std::cout << "mTauTau: svFit@1 = " << mTauTau1 << ", svFit@2 = " << mTauTau2 << ", nominal = " << mTauTau_nominal << "\n";
+//  std::cout << " --> CHECK !!\n";
+//}
   } 
   else
   {
