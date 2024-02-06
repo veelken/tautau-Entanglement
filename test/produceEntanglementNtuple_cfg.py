@@ -40,7 +40,8 @@ tauPairMassCut = "mass > 0."
 from TauAnalysis.Entanglement.resolutions_cfi import resolutions_SuperKEKB as resolutions
 from TauAnalysis.Entanglement.acceptanceCuts_cfi import acceptanceCuts_SuperKEKB as acceptanceCuts
 startPosFinder_applyHiggsMassConstraint = False
-svFit_applyHiggsMassConstraint = False
+#svFit_applyHiggsMassConstraint = False
+svFit_applyHiggsMassConstraint = True
 {% else %}
 raise ValueError("Invalid Configuration parameter 'collider' = '{{ collider }}' !!")
 {% endif %}
